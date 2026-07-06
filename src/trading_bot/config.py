@@ -55,6 +55,9 @@ class RiskConfig(BaseModel):
     max_total_exposure_pct: float = Field(gt=0, le=1)
     max_daily_loss_pct: float = Field(gt=0, le=1)
     stop_loss_pct: float = Field(gt=0, le=1)
+    # Dead-band: skip rebalance orders smaller than this many dollars, so tiny
+    # target drifts don't churn 1-share orders that mostly pay commission.
+    min_order_value: float = Field(default=200.0, ge=0)
 
 
 class FeesConfig(BaseModel):

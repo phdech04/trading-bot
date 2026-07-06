@@ -35,6 +35,9 @@ class RiskManager:
         # Sticky: once the daily loss limit trips, it stays tripped until
         # the process is restarted. The engine reads this and halts.
         self.daily_loss_breached = False
+        # Symbols stopped out today: no re-entry until the next trading day,
+        # otherwise a target weight would buy right back into a falling knife.
+        self._stopped_today: set[str] = set()
 
     def evaluate(
         self,
@@ -85,6 +88,7 @@ class RiskManager:
                 )
                 orders.append(self._order(symbol, "SELL", pos.qty, signal.timestamp))
                 stopped_out.add(symbol)
+                self._stopped_today.add(symbol)
 
         # --- 3. Size targets, capped per position --------------------------
         # Track projected exposure/cash as we go so the batch as a whole
@@ -97,9 +101,13 @@ class RiskManager:
         projected_cash = account.cash
         max_exposure = equity * self.config.max_total_exposure_pct
 
-        for symbol, weight in sorted(signal.target_weights.items()):
-            if symbol in stopped_out:
-                logger.info("Skipping target for %s: stop-loss exit this bar", symbol)
+        # A held symbol missing from target_weights means "target = 0":
+        # the strategy dropped it, so we should exit the position.
+        all_symbols = set(signal.target_weights) | set(positions)
+        for symbol in sorted(all_symbols):
+            weight = signal.target_weights.get(symbol, 0.0)
+            if symbol in stopped_out or symbol in self._stopped_today:
+                logger.info("Skipping target for %s: stopped out today", symbol)
                 continue
             price = prices.get(symbol)
             if price is None or price <= 0:
@@ -119,6 +127,19 @@ class RiskManager:
             current_qty = positions[symbol].qty if symbol in positions else 0
             delta = target_qty - current_qty
             if delta == 0:
+                continue
+
+            # Dead-band: ignore tiny rebalances (unless it's a full exit) --
+            # a 2-share order mostly pays commission, not moves the portfolio.
+            is_full_exit = target_qty == 0 and current_qty > 0
+            if abs(delta) * price < self.config.min_order_value and not is_full_exit:
+                logger.debug(
+                    "Skipping tiny rebalance %s: %+d shares (~%.2f < min_order_value %.2f)",
+                    symbol,
+                    delta,
+                    abs(delta) * price,
+                    self.config.min_order_value,
+                )
                 continue
 
             if delta > 0:
@@ -164,5 +185,6 @@ class RiskManager:
         if day != self._current_day:
             self._current_day = day
             self._day_start_equity = equity
+            self._stopped_today.clear()
             # Note: `daily_loss_breached` is NOT reset -- after a breach we
             # want a human to look at what happened before trading resumes.

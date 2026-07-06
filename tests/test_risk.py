@@ -99,6 +99,25 @@ def test_stop_loss_exits_losing_position(risk: RiskManager) -> None:
     assert not any(o.symbol == "AAPL" and o.side == "BUY" for o in orders)
 
 
+def test_tiny_rebalance_is_skipped(risk: RiskManager) -> None:
+    """A 1-share drift (~$100 < min_order_value $200) must not churn an order."""
+    positions = {"AAPL": Position(symbol="AAPL", qty=99, avg_cost=99.0)}
+    signal = Signal(timestamp=T0, target_weights={"AAPL": 0.10})  # target = 100 shares
+    orders = risk.evaluate(signal, account(), positions, prices={"AAPL": 100.0})
+    assert orders == []
+
+
+def test_dropped_symbol_is_fully_exited(risk: RiskManager) -> None:
+    """Holding a symbol the strategy no longer targets -> full exit, even if
+    the position is smaller than the dead-band."""
+    positions = {"AAPL": Position(symbol="AAPL", qty=1, avg_cost=100.0)}
+    signal = Signal(timestamp=T0, target_weights={})  # AAPL dropped
+    orders = risk.evaluate(signal, account(), positions, prices={"AAPL": 101.0})
+    assert len(orders) == 1
+    assert orders[0].side == "SELL"
+    assert orders[0].qty == 1
+
+
 def test_no_orders_when_already_at_target(risk: RiskManager) -> None:
     positions = {"AAPL": Position(symbol="AAPL", qty=100, avg_cost=99.0)}
     signal = Signal(timestamp=T0, target_weights={"AAPL": 0.10})

@@ -29,6 +29,9 @@ risk:
   max_daily_loss_pct: 0.03
   # Close a position if its price falls this fraction below our average cost.
   stop_loss_pct: 0.05
+  # Skip rebalance orders worth less than this (dollars) -- tiny orders
+  # mostly pay commission, not move the portfolio.
+  min_order_value: 500.0
 
 # Backtest fill model (rough IBKR-like costs; tune later).
 fees:
