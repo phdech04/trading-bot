@@ -34,9 +34,7 @@ def test_backtest_accounting_is_consistent(result: BacktestResult) -> None:
     # equity change == realized + unrealized - commissions (fills already
     # embed slippage in their prices, so no separate term for it).
     pnl_from_parts = result.realized_pnl + result.unrealized_pnl - result.total_commission
-    assert result.final_equity - result.initial_cash == pytest.approx(
-        pnl_from_parts, abs=0.01
-    )
+    assert result.final_equity - result.initial_cash == pytest.approx(pnl_from_parts, abs=0.01)
 
 
 def test_summary_mentions_the_key_numbers(result: BacktestResult) -> None:

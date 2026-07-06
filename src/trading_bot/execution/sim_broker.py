@@ -53,9 +53,7 @@ class SimBroker(Broker):
         # Slippage always works against you: buys fill higher, sells lower.
         slip = price * self._fees.slippage_bps / 10_000
         fill_price = price + slip if order.side == "BUY" else price - slip
-        commission = max(
-            self._fees.min_commission, order.qty * self._fees.commission_per_share
-        )
+        commission = max(self._fees.min_commission, order.qty * self._fees.commission_per_share)
 
         fill = Fill(
             order=order,

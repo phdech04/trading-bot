@@ -149,8 +149,7 @@ class RiskManager:
                 allowed_qty = min(delta, math.floor(affordable / price))
                 if allowed_qty < delta:
                     logger.info(
-                        "Trimming BUY %s %d -> %d (exposure/cash cap: headroom %.2f, "
-                        "cash %.2f)",
+                        "Trimming BUY %s %d -> %d (exposure/cash cap: headroom %.2f, cash %.2f)",
                         symbol,
                         delta,
                         max(allowed_qty, 0),

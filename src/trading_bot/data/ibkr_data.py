@@ -126,7 +126,10 @@ class IBKRDataProvider(DataProvider):
                 df = self._to_df(bars)
                 completed = df.iloc[:-1] if len(df) > 1 else df.iloc[:0]
                 last_known = history[symbol].index.max() if len(history[symbol]) else None
-                fresh = completed if last_known is None else completed.loc[completed.index > last_known]
+                if last_known is None:
+                    fresh = completed
+                else:
+                    fresh = completed.loc[completed.index > last_known]
                 if not fresh.empty:
                     history[symbol] = pd.concat([history[symbol], fresh])
                     new_bar_completed = True

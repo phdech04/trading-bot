@@ -77,9 +77,7 @@ def run_backtest(
     engine.run()
 
     # Value the book at each symbol's last known close.
-    final_prices = {
-        sym: float(df["close"].iloc[-1]) for sym, df in bars.items() if not df.empty
-    }
+    final_prices = {sym: float(df["close"].iloc[-1]) for sym, df in bars.items() if not df.empty}
     n_bars = len({ts for df in bars.values() for ts in df.index})
 
     return BacktestResult(

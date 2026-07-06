@@ -69,15 +69,12 @@ class Portfolio:
     def market_value(self, prices: dict[str, float]) -> float:
         """Current value of all held shares. Falls back to avg_cost when a
         price is missing so a data gap can't zero out the account value."""
-        return sum(
-            p.qty * prices.get(sym, p.avg_cost) for sym, p in self._positions.items()
-        )
+        return sum(p.qty * prices.get(sym, p.avg_cost) for sym, p in self._positions.items())
 
     def equity(self, prices: dict[str, float]) -> float:
         return self.cash + self.market_value(prices)
 
     def unrealized_pnl(self, prices: dict[str, float]) -> float:
         return sum(
-            p.qty * (prices.get(sym, p.avg_cost) - p.avg_cost)
-            for sym, p in self._positions.items()
+            p.qty * (prices.get(sym, p.avg_cost) - p.avg_cost) for sym, p in self._positions.items()
         )

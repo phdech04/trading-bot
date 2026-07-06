@@ -109,7 +109,9 @@ def connect_ibkr(settings: Settings, timeout: float = 10.0) -> IB:
         ib.connect(env.ibkr_host, env.ibkr_port, clientId=env.ibkr_client_id, timeout=timeout)
     except (ConnectionError, OSError, TimeoutError) as exc:
         raise IBKRConnectionError(
-            CONNECT_HELP.format(host=env.ibkr_host, port=env.ibkr_port, client_id=env.ibkr_client_id)
+            CONNECT_HELP.format(
+                host=env.ibkr_host, port=env.ibkr_port, client_id=env.ibkr_client_id
+            )
         ) from exc
 
     try:

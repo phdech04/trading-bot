@@ -33,9 +33,7 @@ class ReplayDataProvider(DataProvider):
         start: datetime,
         end: datetime,
     ) -> dict[str, pd.DataFrame]:
-        return {
-            sym: df.loc[start:end] for sym, df in self._bars.items() if sym in symbols
-        }
+        return {sym: df.loc[start:end] for sym, df in self._bars.items() if sym in symbols}
 
     def stream_or_poll_latest(
         self,

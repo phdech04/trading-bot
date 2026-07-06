@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
 from trading_bot.config import Settings
-from trading_bot.data.synthetic import generate_bars
 from trading_bot.data.replay import ReplayDataProvider
+from trading_bot.data.synthetic import generate_bars
 from trading_bot.engine.core import TradingEngine
 from trading_bot.execution.base import Broker
 from trading_bot.execution.kill_switch import flatten_all
@@ -93,6 +93,38 @@ def test_dry_run_breach_halts_without_flattening(settings: Settings, engine_part
 
     assert engine.halted
     assert broker.calls == []  # nothing touched
+
+
+def test_interrupt_mid_loop_fires_kill_switch(settings: Settings, engine_parts) -> None:
+    """Ctrl-C / SIGTERM handlers raise into the loop; the engine must catch,
+    flatten, and halt. Simulated by a strategy that 'presses Ctrl-C' on bar 3
+    (signal delivery itself is stdlib behavior; this tests OUR handling)."""
+    _, data, _ = engine_parts
+    broker = RecordingBroker()
+    risk = RiskManager(settings.risk)
+
+    class InterruptingStrategy(BuyAndHoldPlaceholder):
+        def __init__(self, symbols: list[str]) -> None:
+            super().__init__(symbols)
+            self.bars_seen = 0
+
+        def generate_signal(self, snapshot):
+            self.bars_seen += 1
+            if self.bars_seen == 3:
+                raise KeyboardInterrupt
+            return super().generate_signal(snapshot)
+
+    live_settings = settings.model_copy(update={"dry_run": False})
+    engine = TradingEngine(
+        data, InterruptingStrategy(settings.symbols), risk, broker, live_settings
+    )
+    engine.run()  # must NOT propagate the KeyboardInterrupt
+
+    assert engine.halted
+    assert "cancel_all" in broker.calls
+    assert "close_all_positions" in broker.calls
+    # Flatten happens exactly once, in order, at the end.
+    assert broker.calls[-2:] == ["cancel_all", "close_all_positions"]
 
 
 def test_stop_halts_the_loop_early(settings: Settings, engine_parts) -> None:

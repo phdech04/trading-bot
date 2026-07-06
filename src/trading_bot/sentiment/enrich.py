@@ -41,10 +41,7 @@ class SentimentEnricher:
     def enrich(self, snapshot: MarketSnapshot) -> MarketSnapshot:
         # Snapshot time (not wall-clock) drives the cadence, so the same code
         # is well-defined in backtests too, should sentiment ever be replayed.
-        due = (
-            self._last_refresh is None
-            or snapshot.timestamp - self._last_refresh >= self._refresh
-        )
+        due = self._last_refresh is None or snapshot.timestamp - self._last_refresh >= self._refresh
         if due:
             self._last_scores = self._refresh_scores(list(snapshot.latest_prices))
             self._last_refresh = snapshot.timestamp

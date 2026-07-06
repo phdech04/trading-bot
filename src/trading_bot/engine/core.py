@@ -17,6 +17,7 @@ import logging
 import signal
 from typing import Protocol
 
+from trading_bot.alerts import send_alert
 from trading_bot.config import Settings
 from trading_bot.data.base import DataProvider
 from trading_bot.execution.base import Broker
@@ -159,6 +160,10 @@ class TradingEngine:
 
     def _fire_kill_switch(self) -> None:
         self._halt = True
+        send_alert(
+            self.settings.env.alert_webhook_url,
+            f"Trading bot KILL SWITCH fired (dry_run={self.settings.dry_run})",
+        )
         if self.settings.dry_run:
             # In dry-run we never sent orders, so there is nothing of ours to
             # unwind -- and flattening would touch REAL pre-existing positions.

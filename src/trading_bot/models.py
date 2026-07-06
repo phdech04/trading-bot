@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Literal
 
 import pandas as pd
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from trading_bot.sentiment.base import SentimentResult
 
 
-class Timeframe(str, Enum):
+class Timeframe(StrEnum):
     """Bar sizes the bot understands.
 
     Each member knows how to express itself both as an IBKR "bar size" string

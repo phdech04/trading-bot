@@ -119,7 +119,15 @@ def test_cache_roundtrip_and_new_article_miss(tmp_path: Path) -> None:
 class FakeNews(NewsProvider):
     def get_headlines(self, symbols: list[str], lookback_hours: int):
         return {
-            s: [NewsItem(id=f"{s}-1", symbol=s, headline=f"{s} rallies", published=datetime.now(), source="fake")]
+            s: [
+                NewsItem(
+                    id=f"{s}-1",
+                    symbol=s,
+                    headline=f"{s} rallies",
+                    published=datetime.now(),
+                    source="fake",
+                )
+            ]
             for s in symbols
         }
 
@@ -129,9 +137,7 @@ def _snapshot(ts: datetime) -> MarketSnapshot:
 
 
 def test_enricher_attaches_sentiment_and_respects_refresh(tmp_path: Path) -> None:
-    llm = ScriptedLLM(
-        [json.dumps({"AAPL": {"score": 0.4, "label": "bullish", "rationale": "x"}})]
-    )
+    llm = ScriptedLLM([json.dumps({"AAPL": {"score": 0.4, "label": "bullish", "rationale": "x"}})])
     enricher = SentimentEnricher(
         news=FakeNews(),
         provider=llm,

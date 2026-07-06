@@ -32,9 +32,7 @@ def setup_logging(
     console = logging.StreamHandler()
     console.setFormatter(formatter)
 
-    file_handler = RotatingFileHandler(
-        log_path / filename, maxBytes=5 * 1024 * 1024, backupCount=3
-    )
+    file_handler = RotatingFileHandler(log_path / filename, maxBytes=5 * 1024 * 1024, backupCount=3)
     file_handler.setFormatter(formatter)
 
     root = logging.getLogger()
