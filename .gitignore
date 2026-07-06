@@ -1,0 +1,20 @@
+# Secrets -- never commit real credentials.
+.env
+
+# Local data cache and logs (regenerable).
+data/*
+!data/.gitkeep
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environment (uv creates .venv in the project).
+.venv/
+
+# OS noise
+.DS_Store

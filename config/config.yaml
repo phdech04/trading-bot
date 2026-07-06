@@ -1,0 +1,55 @@
+# Non-secret settings. Secrets (connection details, API keys) live in `.env`.
+# Everything here is loaded and validated into a typed Settings object
+# (see src/trading_bot/config.py) -- typos and missing keys fail loudly at startup.
+
+# Which US stocks/ETFs the bot trades.
+symbols:
+  - SPY
+  - AAPL
+  - MSFT
+
+# Bar size: one of 1min, 5min, 15min, 1h, 1d
+timeframe: 1d
+
+# How long (seconds) the live data stream waits for updates before checking
+# for shutdown signals. Also used as the retry pause on reconnects.
+poll_interval_seconds: 60
+
+# When true, orders are LOGGED but never sent to the broker.
+# run_paper.py / run_live.py keep this on unless you pass --execute.
+dry_run: true
+
+risk:
+  # Max fraction of account equity in any single position (0.25 = 25%).
+  max_position_pct: 0.25
+  # Max fraction of equity across ALL positions combined.
+  max_total_exposure_pct: 0.80
+  # If equity drops this fraction below the day's starting equity,
+  # the kill switch fires: cancel everything, close everything, halt.
+  max_daily_loss_pct: 0.03
+  # Close a position if its price falls this fraction below our average cost.
+  stop_loss_pct: 0.05
+
+# Backtest fill model (rough IBKR-like costs; tune later).
+fees:
+  commission_per_share: 0.005
+  min_commission: 1.0
+  # Slippage in basis points applied against you on every simulated fill (1 bp = 0.01%).
+  slippage_bps: 2.0
+
+sentiment:
+  # Sentiment is a signal INPUT, not the strategy. The bot runs fine with this off.
+  enabled: false
+  # Model string for the Gemini provider (verify the current name in Google AI Studio).
+  gemini_model: gemini-2.0-flash
+  # Local Ollama fallback (no API key needed; requires `ollama serve` running).
+  ollama_base_url: http://localhost:11434
+  ollama_model: llama3.2
+  # How far back to look for headlines, and how often to re-score.
+  news_lookback_hours: 24
+  refresh_minutes: 60
+
+backtest:
+  start: 2024-01-02
+  end: 2024-12-31
+  initial_cash: 100000.0

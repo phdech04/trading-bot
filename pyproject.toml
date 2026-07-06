@@ -1,0 +1,51 @@
+[project]
+name = "trading-bot"
+version = "0.1.0"
+description = "US stocks/ETFs trading bot for Interactive Brokers with backtest/paper/live parity"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Broker + market data. ib_async is the maintained successor to ib_insync;
+    # it talks to a locally running IB Gateway / TWS over a socket (no API keys).
+    "ib_async>=1.0",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    # Typed configuration: pydantic models + .env loading.
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "PyYAML>=6.0",
+    # Sentiment: google-genai is Google's current SDK (the older
+    # `google-generativeai` package is deprecated).
+    "google-genai>=1.0",
+    # Free RSS headlines for the news module.
+    "feedparser>=6.0",
+    # Plain HTTP for the Ollama sentiment option and webhook alerts.
+    "requests>=2.31",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trading_bot"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Show log output for failing tests -- handy when debugging the engine loop.
+log_cli_level = "INFO"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+# A pragmatic rule set: pyflakes/pycodestyle errors (E, F), import sorting (I),
+# modern-python upgrades (UP), likely bugs (B), and simplifications (SIM).
+select = ["E", "F", "I", "UP", "B", "SIM"]
