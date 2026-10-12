@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from abc import abstractmethod
 
 import requests
@@ -25,7 +26,8 @@ You are a financial news sentiment rater for short-term US equity trading.
 Rate the aggregate sentiment of the headlines below, per stock symbol.
 
 Return STRICT JSON only. No prose, no explanations outside the JSON, and no
-markdown code fences. Use exactly this schema (one entry per symbol):
+markdown code fences. Return ONE JSON OBJECT whose keys are the symbols --
+never a JSON array. Use exactly this schema (one entry per symbol):
 
 {{"SYMBOL": {{"score": 0.0, "label": "neutral", "rationale": "one short line"}}}}
 
@@ -69,6 +71,15 @@ def parse_sentiment_json(raw: str, symbols: list[str]) -> dict[str, SentimentRes
         data = json.loads(text)
     except json.JSONDecodeError as exc:
         raise ValueError(f"LLM did not return valid JSON: {exc}") from exc
+
+    # Some models return [{"symbol": "AAPL", ...}, ...] despite being asked
+    # for an object keyed by symbol -- accept that shape too.
+    if isinstance(data, list):
+        data = {
+            str(entry["symbol"]): entry
+            for entry in data
+            if isinstance(entry, dict) and "symbol" in entry
+        }
     if not isinstance(data, dict):
         raise ValueError(f"Expected a JSON object, got {type(data).__name__}")
 
@@ -118,8 +129,14 @@ class LLMSentimentBase(SentimentProvider):
                     type(self).__name__,
                     exc,
                 )
+                if attempt == 1:
+                    # Brief pause before the one retry -- momentary API
+                    # overloads (503s) usually clear within seconds.
+                    time.sleep(3)
         logger.error("Sentiment unavailable, returning neutral for all symbols: %s", last_error)
-        return {s: neutral(s, f"sentiment unavailable: {last_error}") for s in symbols}
+        # Keep the stored rationale short -- the full error is already logged.
+        reason = f"sentiment unavailable: {str(last_error)[:120]}"
+        return {s: neutral(s, reason) for s in symbols}
 
     @abstractmethod
     def _call_llm(self, prompt: str) -> str:

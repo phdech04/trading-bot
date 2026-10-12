@@ -39,6 +39,19 @@ def test_strips_markdown_fences() -> None:
     assert results["AAPL"].score == 0.6
 
 
+def test_accepts_list_shaped_reply() -> None:
+    """Some models return an array of {"symbol": ...} entries -- accept it."""
+    raw = json.dumps(
+        [
+            {"symbol": "AAPL", "score": 0.6, "label": "bullish", "rationale": "x"},
+            {"symbol": "MSFT", "score": -0.3, "label": "bearish", "rationale": "y"},
+        ]
+    )
+    results = parse_sentiment_json(raw, ["AAPL", "MSFT"])
+    assert results["AAPL"].label == "bullish"
+    assert results["MSFT"].score == -0.3
+
+
 def test_clamps_out_of_range_scores() -> None:
     raw = json.dumps({"AAPL": {"score": 7, "label": "bullish", "rationale": "x"}})
     assert parse_sentiment_json(raw, ["AAPL"])["AAPL"].score == 1.0
