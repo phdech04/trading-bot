@@ -43,3 +43,5 @@ def setup_logging(
 
     # ib_async logs every incoming tick at INFO; keep it to warnings.
     logging.getLogger("ib_async").setLevel(logging.WARNING)
+    # httpx (used by the Gemini SDK) logs every request at INFO -- too chatty.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
