@@ -127,7 +127,7 @@ class LLMSentimentBase(SentimentProvider):
 
 
 class GeminiSentiment(LLMSentimentBase):
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash") -> None:
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite") -> None:
         # Imported here (not module top) so the Ollama-only setup never
         # needs Google credentials/SDK working.
         from google import genai

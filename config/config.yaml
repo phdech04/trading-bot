@@ -43,8 +43,9 @@ fees:
 sentiment:
   # Sentiment is a signal INPUT, not the strategy. The bot runs fine with this off.
   enabled: false
-  # Model string for the Gemini provider (verify the current name in Google AI Studio).
-  gemini_model: gemini-2.0-flash
+  # Model string for the Gemini provider. Verified 2026-07: the 2.0 family has
+  # NO free-tier quota anymore; 2.5-flash-lite and 2.5-flash both work free.
+  gemini_model: gemini-2.5-flash-lite
   # Local Ollama fallback (no API key needed; requires `ollama serve` running).
   ollama_base_url: http://localhost:11434
   ollama_model: llama3.2

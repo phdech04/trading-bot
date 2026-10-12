@@ -70,7 +70,7 @@ class FeesConfig(BaseModel):
 
 class SentimentConfig(BaseModel):
     enabled: bool = False
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-2.5-flash-lite"
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
     news_lookback_hours: int = 24

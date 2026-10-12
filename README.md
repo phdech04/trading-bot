@@ -149,7 +149,7 @@ fine without it.
   swappable `NewsProvider` interface. (IBKR news needs paid subscriptions.)
 - Scoring goes through `SentimentProvider`, selected by `SENTIMENT_PROVIDER`:
   - `gemini` (default): Google's `google-genai` SDK, model configurable via
-    `sentiment.gemini_model` (default `gemini-2.0-flash`). Free-tier friendly.
+    `sentiment.gemini_model` (default `gemini-2.5-flash-lite`). Free-tier friendly.
   - `ollama`: a local model via [Ollama](https://ollama.com) -- no API key.
     `ollama pull llama3.2 && ollama serve`, then flip the env var.
 - The model must answer strict JSON; replies are parsed defensively (retry
