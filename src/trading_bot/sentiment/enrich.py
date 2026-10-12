@@ -70,7 +70,10 @@ class SentimentEnricher:
             fresh = self._provider.score(to_score)
             for symbol, result in fresh.items():
                 scores[symbol] = result
-                self._cache.put(symbol, [i.id for i in headlines[symbol]], result)
+                # Only cache REAL assessments; caching a failure fallback
+                # would keep serving it until new articles appear.
+                if result.ok:
+                    self._cache.put(symbol, [i.id for i in headlines[symbol]], result)
                 logger.info(
                     "SENTIMENT %s: %.2f (%s) -- %s",
                     symbol,

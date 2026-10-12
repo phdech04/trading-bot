@@ -20,11 +20,14 @@ class SentimentResult:
     score: float  # -1 (max bearish) .. +1 (max bullish)
     label: Label
     rationale: str  # one line: WHY the model thinks so (for the logs)
+    # False = this is a fallback (LLM failed / no data), not a real assessment.
+    # Fallbacks are never cached, so a transient outage isn't frozen in.
+    ok: bool = True
 
 
 def neutral(symbol: str, rationale: str) -> SentimentResult:
     """The safe fallback whenever scoring is impossible or unreliable."""
-    return SentimentResult(symbol=symbol, score=0.0, label="neutral", rationale=rationale)
+    return SentimentResult(symbol=symbol, score=0.0, label="neutral", rationale=rationale, ok=False)
 
 
 class SentimentProvider(ABC):

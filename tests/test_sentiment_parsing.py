@@ -136,6 +136,20 @@ def _snapshot(ts: datetime) -> MarketSnapshot:
     return MarketSnapshot(timestamp=ts, bars={}, latest_prices={"AAPL": 100.0})
 
 
+def test_failed_scores_are_never_cached(tmp_path: Path) -> None:
+    """A transient LLM outage must not poison the cache with neutral fallbacks."""
+    cache = SentimentCache(tmp_path / "cache.json")
+    llm = ScriptedLLM(["garbage", "garbage"])  # both attempts fail
+    enricher = SentimentEnricher(news=FakeNews(), provider=llm, cache=cache)
+
+    result = enricher.enrich(_snapshot(datetime(2024, 3, 4, 10, 0)))
+    assert result.sentiment is not None
+    assert result.sentiment["AAPL"].ok is False  # fallback, clearly marked
+
+    # The failure must NOT be stored -- next refresh should re-ask the LLM.
+    assert cache.get("AAPL", ["AAPL-1"]) is None
+
+
 def test_enricher_attaches_sentiment_and_respects_refresh(tmp_path: Path) -> None:
     llm = ScriptedLLM([json.dumps({"AAPL": {"score": 0.4, "label": "bullish", "rationale": "x"}})])
     enricher = SentimentEnricher(
